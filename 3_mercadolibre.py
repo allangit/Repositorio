@@ -1,58 +1,132 @@
 # -*- coding: utf-8 -*-
 
-from time import sleep
+import pandas as pd
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
+from time import*
+import requests
+import lxml
 
-# Definimos el User Agent en Selenium utilizando la clase Options aunque también se puede definir firefox
-opts = Options()
-opts.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36")
-driver = webdriver.Chrome(service = Service(ChromeDriverManager().install()), options=opts)
+class Mercado:
+    
 
-#URL SEMILLA
-driver.get('https://listado.mercadolibre.com.ec/herramientas-vehiculos/')
+    def __init__(self):
+        
 
-PAGINACION_MAX = 10
-PAGINACION_ACTUAL = 1
+        self.driver=webdriver.Chrome()
+        self.driver.get('https://listado.mercadolibre.com.ec/herramientas-vehiculos/')
+        sleep(3)
+        '''definir las variables a extraer'''
 
-sleep(3) # Esperar a que todo cargue correctamente aunque puede ser aleatorio para el baneos
+        self.modelo=0
+        self.precio=0
 
-# Mientras la pagina en la que me encuentre, sea menor que la maxima pagina que voy a sacar... sigo ejecutando...
-while PAGINACION_MAX > PAGINACION_ACTUAL:
+        '''definir las listas '''
 
-  links_productos = driver.find_elements(By.XPATH, '//a[@class="ui-search-item__group__element ui-search-link__title-card ui-search-link"]')
-  links_de_la_pagina = []
-  for a_link in links_productos:
-    links_de_la_pagina.append(a_link.get_attribute("href"))
+        self.lista_modelo=[]
+        self.lista_precio=[]
 
-  for link in links_de_la_pagina:
-    sleep(2) # Prevenir baneos de IP
-    try:
-      # Voy a cada uno de los links de los detalles de los productos
-      driver.get(link)
-      titulo = driver.find_element(By.XPATH, '//h1').text
-      precio = driver.find_element(By.XPATH, '//span[contains(@class,"ui-pdp-price")]').text
-      print (titulo)
-      print (precio.replace('\n', '').replace('\t', '')) # Podriamos realizar mas limpieza
+        '''definir  los postings a extraer'''
+        self.links_productos=[]
+        self.links=0
 
-      #boton de retroceso
-      driver.back()
-    except Exception as e:
-      print (e)
-      #Regreso a la lista y sigo con otro producto.
-      driver.back()
+        '''definir los postings para extraer los datos'''
 
-  try:
-    # Intento obtener el boton de SIGUIENTE y le intento dar click
-    puedo_seguir_horizontal = driver.find_element(By.XPATH, '//span[text()="Siguiente"]')
-    puedo_seguir_horizontal.click()
-  except: 
-    # Lo cual me indica que ya no puedo seguir paginando, por ende rompo el While
-    break
+        self.posting=0
+        self.postings=[]
 
-  PAGINACION_ACTUAL += 1
+        '''definir las paginas a extraer'''
+
+        self.i=0
+        self.disclaimer=0
+
+        '''definir los botones'''
+
+    def extraer_data(self):
+    
+      try: # Encerramos todo en un try catch para que si no aparece el discilamer, no se caiga el codigo
+           
+        self.disclaimer = self.driver.find_element(By.XPATH, '//button[@data-testid="action:understood-button"]')
+        self.disclaimer.click() # lo obtenemos y le damos click
+
+      except Exception as e:
+   
+        print (e) 
+        None
+
+        '''extraer los links donde se encuentran la informacion para Robot'''
+
+       
+      while self.i <2:
+
+        #
+        self.links_productos=[]
+        self.postings=0
+        self.postings=self.driver.find_elements(By.XPATH,'//div[@class="ui-search-item__group ui-search-item__group--title"]')
+
+
+        for self.posting in self.postings:
+              
+          self.links=self.posting.find_element(By.XPATH,'.//a[@class="ui-search-item__group__element ui-search-link__title-card ui-search-link"]').get_attribute('href')
+          self.links_productos.append(self.links)
+          print(self.links)
+
+
+        for self.links in self.links_productos:
+           
+          try:
+            
+            self.driver.get(self.links)
+            sleep(2)
+            self.modelo=self.driver.find_element(By.XPATH,'//h1[@class="ui-pdp-title"]').text
+            self.lista_modelo.append(self.modelo)
+            print(self.modelo)
+            self.driver.back()
+
+          except Exception as e:
+                  
+            print(e)
+            self.driver.back()
+
+        try:
+
+          print("Entro al boton")
+          sleep(4)
+          self.boton=self.driver.find_element(By.XPATH,'//a[@title="Siguiente"]')      
+          self.boton.click()
+          sleep(5)
+
+        except Exception as e:
+              
+          print(e)
+          break
+        
+        self.i+=1
+
+      #  
+
+
+
+
+              
+
+
+m=Mercado()
+m.extraer_data()
+
+      
+
+       
+
+
+
+
+
