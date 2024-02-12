@@ -1,4 +1,3 @@
-
 from scrapy.item import Field
 from scrapy.item import Item
 from scrapy.spiders import CrawlSpider, Rule
@@ -23,16 +22,15 @@ class MercadoLibreCrawler(CrawlSpider):
 
     # Utilizamos 2 dominios permitidos, ya que los articulos utilizan un dominio diferente
     allowed_domains = ['articulo.mercadolibre.com.ec', 'listado.mercadolibre.com.ec']
-
     start_urls = ['https://listado.mercadolibre.com.ec/animales-mascotas/perros/']
-
     download_delay = 3
 
     # Tupla de reglas para la paginación vertical y horizontal
+
     rules = (
         Rule( # REGLA #1 => HORIZONTALIDAD POR PAGINACION
             LinkExtractor(
-                allow=r'/_Desde_\d+' # Patron en donde se utiliza "\d+", expresion que puede tomar el valor de cualquier combinacion de numeros
+                allow=r'/_Desde_' # Patron en donde se utiliza "\d+", expresion que puede tomar el valor de cualquier combinacion de numeros
             ), follow=True),
         Rule( # REGLA #2 => VERTICALIDAD AL DETALLE DE LOS PRODUCTOS
             LinkExtractor(
@@ -46,9 +44,8 @@ class MercadoLibreCrawler(CrawlSpider):
         
         item.add_xpath('titulo', '//h1/text()')
         item.add_xpath('descripcion', '//div[@class="ui-pdp-description"]/p/text()')
-        precio = soup.find(class_="andes-money-amount__fraction")
-        precio_completo = precio.text.replace('\n', ' ').replace('\r', ' ').replace(' ', '') # texto de todos los hijos
-        item.add_value('precio', precio_completo)
+        item.add_xpath('precio','//span[@class="andes-money-amount__fraction"]/text()')
+
+    
 
         yield item.load_item()
-
