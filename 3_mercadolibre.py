@@ -112,13 +112,6 @@ class Mercado:
         self.i+=1
 
       #  
-
-
-
-
-              
-
-
 m=Mercado()
 m.extraer_data()
 
